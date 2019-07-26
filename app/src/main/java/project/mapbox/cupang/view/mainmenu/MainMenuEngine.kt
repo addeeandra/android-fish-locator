@@ -19,10 +19,10 @@ import project.mapbox.cupang.util.invisible
 import project.mapbox.cupang.util.visible
 
 
-class MainMenuEngine : AppCompatActivity() , MainMenuView , OnMapReadyCallback {
+class MainMenuEngine : AppCompatActivity(), MainMenuView, OnMapReadyCallback {
     private var map: TomtomMap? = null
     private val mApi by lazy { ApiFactory() }
-    private val mPresenter by lazy { MainMenuPresenter(this , mApi) }
+    private val mPresenter by lazy { MainMenuPresenter(this, mApi) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,20 +34,20 @@ class MainMenuEngine : AppCompatActivity() , MainMenuView , OnMapReadyCallback {
         hideLoading()
     }
 
-    override fun onMapReady(tomtomMap: TomtomMap) {
-        this.map = tomtomMap
+    override fun onMapReady(mMap: TomtomMap) {
+        this.map = mMap
         val mapPaddingVertical = resources.getDimension(R.dimen.map_padding_vertical).toDouble()
         val mapPaddingHorizontal = resources.getDimension(R.dimen.map_padding_horizontal).toDouble()
 
-        tomtomMap.uiSettings.currentLocationView.show()
-        tomtomMap.uiSettings.mapTilesType = MapTilesType.VECTOR
-        tomtomMap.isMyLocationEnabled = true
-        tomtomMap.setPadding(
-                mapPaddingVertical , mapPaddingHorizontal ,
-                mapPaddingVertical , mapPaddingHorizontal
+        mMap.uiSettings.currentLocationView.show()
+        mMap.uiSettings.mapTilesType = MapTilesType.VECTOR
+        mMap.isMyLocationEnabled = true
+        mMap.setPadding(
+            mapPaddingVertical, mapPaddingHorizontal,
+            mapPaddingVertical, mapPaddingHorizontal
         )
-        tomtomMap.uiSettings.currentLocationView.setMargins(24 , 24 , 24 , 24)
-        tomtomMap.uiSettings.compassView.setMargins(24 , 24 , 24 , 24)
+        mMap.uiSettings.currentLocationView.setMargins(24, 24, 24, 24)
+        mMap.uiSettings.compassView.setMargins(24, 24, 24, 24)
         GlobalScope.launch(Dispatchers.Main) { mPresenter.initData(baseContext) }
     }
 
@@ -64,19 +64,26 @@ class MainMenuEngine : AppCompatActivity() , MainMenuView , OnMapReadyCallback {
         map?.centerOn(CameraPosition.builder(lastUserLocation).zoom(7.0).build())
     }
 
-    override fun attachData(mLocation: ArrayList<LatLng> , mBalloon: ArrayList<String>) {
+    override fun attachData(mLocation: ArrayList<LatLng>, mBalloon: ArrayList<String>) {
         showUserLoc()
         val lastUserLocation = map?.userLocation?.let { LatLng(it) }
         for (i in mLocation.indices) {
             map!!.addMarker(
-                    MarkerBuilder(mLocation[i]).icon(Icon.Factory.fromResources(this , R.drawable.fish)).markerBalloon(
-                            SimpleMarkerBalloon(
-                                    "${mBalloon[i]} \n\n " +
-                                            resources.getString(R.string.jarak_ke_lokasi) +
-                                            "${DistanceCalculator.calcDistInKilometers(lastUserLocation , mLocation[i]).toInt()}km" +
-                                            "\n Waktu tempuh :${estTime(DistanceCalculator.calcDistInKilometers(lastUserLocation , mLocation[i]).toInt())}"
-                            )
+                MarkerBuilder(mLocation[i]).icon(Icon.Factory.fromResources(this, R.drawable.fish)).markerBalloon(
+                    SimpleMarkerBalloon(
+                        "${mBalloon[i]} \n\n " +
+                                resources.getString(R.string.jarak_ke_lokasi) +
+                                "${DistanceCalculator.calcDistInKilometers(lastUserLocation, mLocation[i]).toInt()}km" +
+                                "\n Waktu tempuh :${estTime(
+                                    DistanceCalculator.calcDistInKilometers(
+                                        lastUserLocation,
+                                        mLocation[i]
+                                    ).toInt()
+                                )}\n" +
+                                "\n Latitude : ${mLocation[i].latitude}" +
+                                "\n Longitude : ${mLocation[i].longitude}"
                     )
+                )
             )
         }
     }
@@ -92,7 +99,7 @@ class MainMenuEngine : AppCompatActivity() , MainMenuView , OnMapReadyCallback {
     }
 
     override fun getgpsPermission() {
-        ActivityCompat.requestPermissions(this , arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION) , 1)
+        ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), 1)
     }
 
     override fun showGpsError() {
@@ -106,28 +113,18 @@ class MainMenuEngine : AppCompatActivity() , MainMenuView , OnMapReadyCallback {
         }
     }
 
-    public override
-            /** @inheritDoc
-             */
-    fun onStart() {
+    public override fun onStart() {
         super.onStart()
         map_fragment.onStart()
     }
 
-    public override
-            /** @inheritDoc
-             */
-    fun onResume() {
+    public override fun onResume() {
         super.onResume()
         map_fragment.onResume()
     }
 
-    public override
-            /** @inheritDoc
-             */
-    fun onPause() {
+    public override fun onPause() {
         map_fragment.onPause()
-//        callbackContainer.removeAllCallbacks()
         super.onPause()
     }
 
